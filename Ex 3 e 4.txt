@@ -1,0 +1,242 @@
+void Ex3() {
+	Mat img1 = imread("D:\\Mestrado\\3PDI\\1ListaPDI\\ruidosa1.tif", CV_LOAD_IMAGE_GRAYSCALE);
+	Mat img2 = imread("D:\\Mestrado\\3PDI\\1ListaPDI\\ruidosa2.tif", CV_LOAD_IMAGE_GRAYSCALE);
+
+	if (img1.empty())
+	{
+		cout << "Image cannot be loaded..!!" << endl;
+		return;
+	}
+
+	namedWindow("Original Image Ruidosa1", CV_WINDOW_AUTOSIZE);
+	imshow("Original Image Ruidosa1", img1);
+
+	Mat img1_M_3 = FilterMean(img1, 3);
+	Mat img1_M_11 = FilterMean(img1, 11);
+
+	namedWindow("Ruidosa1 Filtro Media 3x3", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa1 Filtro Media 3x3", img1_M_3);
+
+	namedWindow("Ruidosa1 Filtro Media 11x11", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa1 Filtro Media 11x11", img1_M_11);
+
+	Mat img1_3 = FilterMedian(img1, 3);
+	Mat img1_11 = FilterMedian(img1, 11);
+
+	namedWindow("Ruidosa1 Filtro Mediana 3x3", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa1 Filtro Mediana 3x3", img1_3);
+
+	namedWindow("Ruidosa1 Filtro Mediana 11x11", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa1 Filtro Mediana 11x11", img1_11);
+
+	namedWindow("Original Image Ruidosa2", CV_WINDOW_AUTOSIZE);
+	imshow("Original Image Ruidosa2", img2);
+
+	Mat img2_M_5 = FilterMean(img2, 5);
+	Mat img2_5 = FilterMedian(img2, 5);
+
+	namedWindow("Ruidosa2 Filtro Media 5x5", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa2 Filtro Media 5x5", img2_M_5);
+
+	namedWindow("Ruidosa2 Filtro Mediana 5x5", CV_WINDOW_AUTOSIZE);
+	imshow("Ruidosa2 Filtro Mediana 5x5", img2_5);
+
+	int MSE_M = 0;
+	int MSE = 0;
+
+	if (!(img2.size() == img2_M_5.size() && img2.size() == img2_5.size()))
+	{
+		//verificar se imagens sao tamanhos diferentes
+		cout << "Imagens de tamanhos diferentes." << endl;
+		waitKey(0);
+		destroyAllWindows(); //destroy all open windows
+		return;
+	}
+
+	for (int i = 0; i < img2.rows; i++)
+	{
+		for (int j = 0; j < img2.cols; j++)
+		{
+			MSE_M += pow(img2.at<uchar>(i, j) - img2_M_5.at<uchar>(i, j), 2);
+			MSE += pow(img2.at<uchar>(i, j) - img2_5.at<uchar>(i, j), 2);
+		}
+	}
+
+	MSE_M = (MSE_M / (img2.rows* img2.cols));
+	MSE = (MSE / (img2.rows* img2.cols));
+
+	cout << "MSE Ruidosa2 Filtro Media   = " << MSE_M << endl;
+	cout << "MSE Ruidosa2 Filtro Mediana = " << MSE << endl;
+
+	int MAX_GRAY = 255;
+	int vPSNR_M = 20 * log10(MAX_GRAY / sqrt(MSE_M));
+	int vPSNR = 20 * log10(MAX_GRAY / sqrt(MSE));
+
+	cout << "PSNR Ruidosa2 Filtro Media   = " << vPSNR_M << endl;
+	cout << "PSNR Ruidosa2 Filtro Mediana = " << vPSNR << endl;
+
+	int aaaaaPSNR_M = PSNR(img2, img2_M_5);
+	int aaaaaPSNR = PSNR(img2, img2_5);
+	cout << "PSNR Ruidosa2 Filtro Media PC   = " << aaaaaPSNR_M << endl;
+	cout << "PSNR Ruidosa2 Filtro Mediana PC = " << aaaaaPSNR << endl;
+
+	waitKey(0);
+
+	destroyAllWindows(); //destroy all open windows
+
+	return;
+}
+
+void Ex4() {
+	//# Open the image
+	Mat img = imread("D:\\Mestrado\\3PDI\\1ListaPDI\\frexp_1.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+	if (img.empty())
+	{
+		cout << "Image cannot be loaded..!!" << endl;
+		return;
+	}
+
+	namedWindow("Original Image", CV_WINDOW_AUTOSIZE);
+	imshow("Original Image", img);
+
+	Mat imgRed = img.clone();
+	for (int i = imgRed.rows - 1; i >= 0; i--)
+	{
+		if (i % 2 == 0)
+			imgRed = RemoveRow(imgRed, i);
+		else
+			imgRed = RemoveCol(imgRed, i);
+	}
+
+	namedWindow("Minimal Image", CV_WINDOW_AUTOSIZE);
+	imshow("Minimal Image", imgRed);
+
+	Mat imgRedSmooth = FilterMean(imgRed, 3);
+
+	namedWindow("Miminal Image with Smooth", CV_WINDOW_AUTOSIZE);
+	imshow("Miminal Image with Smooth", imgRedSmooth);
+
+	Mat imgA = FilterMean(img, 3);
+
+	namedWindow("Smoothen Image", CV_WINDOW_AUTOSIZE);
+	imshow("Smoothen Image", imgA);
+
+	Mat imgRedA = imgA.clone();
+	for (int i = imgRedA.rows - 1; i >= 0; i--)
+	{
+		if (i % 2 == 0)
+			imgRedA = RemoveRow(imgRedA, i);
+		else
+			imgRedA = RemoveCol(imgRedA, i);
+	}
+
+	namedWindow("Minimal Smoothen Image", CV_WINDOW_AUTOSIZE);
+	imshow("Minimal Smoothen Image", imgRedA);
+	/*
+	for (int i = img.rows - 1; i >= 0; i -= 2)
+	{
+		img = RemoveRow(img, i);
+	}
+
+	for (int i = img.cols - 1; i >= 0; i -= 2)
+	{
+		img = RemoveCol(img, i);
+	}
+	*/
+
+
+	waitKey(0);
+
+	destroyAllWindows(); //destroy all open windows
+
+	return;
+}
+
+Mat FilterMean(Mat matIn, int maskSize) {
+	int maskDiv = maskSize * maskSize;
+	maskSize = floor(maskSize / 2);
+
+	Mat matOut = Mat::zeros(matIn.rows, matIn.cols, matIn.type());
+	Mat imgAux = Mat::zeros(matIn.rows + maskSize * 2, matIn.cols + maskSize * 2, matIn.type());
+	matIn.copyTo(imgAux.rowRange(maskSize, matIn.rows + maskSize).colRange(maskSize, matIn.cols + maskSize));
+
+	for (int i = maskSize; i < matIn.rows + maskSize; i++)
+		for (int j = maskSize; j < matIn.cols + maskSize; j++)
+		{
+			int sum = 0;
+			for (int ii = maskSize*(-1); ii <= maskSize; ii++)
+				for (int jj = maskSize*(-1); jj <= maskSize; jj++)
+					sum += imgAux.at<uchar>(i + ii, j + jj);
+			double aux = sum / maskDiv;
+			matOut.at<uchar>(i - maskSize, j - maskSize) = (int)aux;
+		}
+	return matOut;
+}
+
+Mat FilterMedian(Mat matIn, int maskSize) {
+	int maskDiv = maskSize * maskSize;
+	vector<int> histogram;
+	maskSize = floor(maskSize / 2);
+
+	Mat matOut = Mat::zeros(matIn.rows, matIn.cols, matIn.type());
+	Mat imgAux = Mat::zeros(matIn.rows + maskSize * 2, matIn.cols + maskSize * 2, matIn.type());
+	matIn.copyTo(imgAux.rowRange(maskSize, matIn.rows + maskSize).colRange(maskSize, matIn.cols + maskSize));
+
+	for (int i = maskSize; i < matIn.rows + maskSize; i++)
+		for (int j = maskSize; j < matIn.cols + maskSize; j++)
+		{
+			histogram.clear();
+			for (int ii = maskSize*(-1); ii <= maskSize; ii++)
+				for (int jj = maskSize*(-1); jj <= maskSize; jj++)
+				{
+					int val = imgAux.at<uchar>(i + ii, j + jj);
+					histogram.push_back(val);
+				}
+			std::sort(histogram.begin(), histogram.end());
+			int aux = histogram.at(histogram.size() / 2);
+			matOut.at<uchar>(i - maskSize, j - maskSize) = aux;
+		}
+	return matOut;
+}
+
+Mat RemoveCol(Mat & matIn, int col) {
+	cv::Size size = matIn.size();
+	cv::Mat matOut(size.height, size.width - 1, matIn.type());
+
+	if (col > 0)
+	{
+		cv::Rect rect(0, 0, col, size.height);
+		matIn(rect).copyTo(matOut(rect));
+	}
+
+	if (col < size.width - 1)
+	{
+		cv::Rect rect1(col + 1, 0, size.width - col - 1, size.height);
+		cv::Rect rect2(col, 0, size.width - col - 1, size.height);
+		matIn(rect1).copyTo(matOut(rect2));
+	}
+
+	return matOut;
+	//matIn = matOut;
+}
+
+Mat RemoveRow(Mat & matIn, int row) {
+	cv::Size size = matIn.size();
+	cv::Mat matOut(size.height - 1, size.width, matIn.type());
+
+	if (row > 0)
+	{
+		cv::Rect rect(0, 0, size.width, row);
+		matIn(rect).copyTo(matOut(rect));
+	}
+
+	if (row < size.height - 1)
+	{
+		cv::Rect rect1(0, row + 1, size.width, size.height - row - 1);
+		cv::Rect rect2(0, row, size.width, size.height - row - 1);
+		matIn(rect1).copyTo(matOut(rect2));
+	}
+
+	return matOut;
+}
